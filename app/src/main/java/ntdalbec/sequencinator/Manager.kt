@@ -1,6 +1,6 @@
 package ntdalbec.sequencinator
 
-import android.provider.MediaStore
+import android.util.Log
 import java.lang.Exception
 
 class Manager {
@@ -13,9 +13,10 @@ class Manager {
             else throw Exception("tempo must be between 40 and 200")
         }
 
-    fun playTone(frequency: Int, duration: Int, wave: WaveForms.Wave) {
-        val toneSize = (duration / 1000f * SAMPLE_RATE).toInt()
-        val tone = ByteArray(toneSize) { wave(frequency, it) }
+    fun playTone(frequency: Int, duration: Int, wave: WaveForms.Wave = WaveForms.Wave.SIN) {
+        val note = Note(frequency, duration)
+        val tone = note.asByteArray(tempo, wave)
+        Log.i(LOG_TAG, "random tone len: ${tone.size}")
         audioManager.playByteArray(tone)
     }
 
@@ -26,11 +27,12 @@ class Manager {
 
     fun play() {
         //TODO: use convolution instead of just using the first channel
-        val toneData = channels[0].asByteArray()
+        val toneData = channels[0].asByteArray(tempo)
+        Log.i(LOG_TAG, "Total data len: ${toneData.size}")
         audioManager.playByteArray(toneData)
     }
 
-    fun removeNoteAt(noteIndex: Int? = null, chanIndex: Int) = channels[chanIndex].removeNoteAt(noteIndex)
+    fun removeNoteAt(noteIndex: Int? = null, chanIndex: Int = 0) = channels[chanIndex].removeNoteAt(noteIndex)
 
     fun addChannel(wave: WaveForms.Wave = WaveForms.Wave.SIN) = channels.add(Channel(wave))
 

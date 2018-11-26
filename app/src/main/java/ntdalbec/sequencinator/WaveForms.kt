@@ -1,6 +1,7 @@
 package ntdalbec.sequencinator
 
 const val SAMPLE_RATE = 8000
+const val LOG_TAG = "LOG_TAG"
 
 object WaveForms {
     fun sinWave(frequency: Int, x: Int): Byte =
