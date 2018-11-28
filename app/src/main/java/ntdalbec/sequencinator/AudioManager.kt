@@ -5,17 +5,33 @@ import android.media.AudioManager
 import android.media.AudioTrack
 
 class AudioManager {
+    //TODO:  The work should be handled off the main thread
+    private val audioTrack: AudioTrack
+
     fun playByteArray(buf: ByteArray) {
-        val audioTrack = AudioTrack(
+        audioTrack.write(buf, 0, buf.size)
+    }
+
+    fun onDestroy() {
+        audioTrack.flush()
+        audioTrack.release()
+    }
+
+    init {
+        val minBuffer = AudioTrack.getMinBufferSize(
+                SAMPLE_RATE,
+                AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_8BIT )
+
+        audioTrack = AudioTrack(
             AudioManager.STREAM_MUSIC,
             SAMPLE_RATE,
-            AudioFormat.CHANNEL_OUT_DEFAULT,
+            AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_8BIT,
-            buf.size,
-            AudioTrack.MODE_STATIC
+            minBuffer,
+            AudioTrack.MODE_STREAM
         )
 
-        audioTrack.write(buf, 0, buf.size)
         audioTrack.play()
     }
 }

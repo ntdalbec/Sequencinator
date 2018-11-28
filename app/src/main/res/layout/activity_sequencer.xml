@@ -93,17 +93,22 @@
             android:id="@+id/quarter_note_button"
             android:layout_weight="1" />
         <Button android:text="Eighth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/eighth_note_button"
-            android:layout_weight="1" />
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/eighth_note_button"
+                android:layout_weight="1" />
         <Button android:text="Sixteenth"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:id="@+id/sixteenth_note_button"
             android:layout_weight="1" />
+        <Button android:text="Remove"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/remove_button"
+            android:layout_weight="1" />
     </LinearLayout>
-    <ScrollView android:layout_width="0dp"
+    <HorizontalScrollView android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
@@ -111,11 +116,12 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintEnd_toEndOf="parent"
         android:id="@+id/song_view_scroll">
-        <LinearLayout android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
+        <ntdalbec.sequencinator.SequencerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/colorPrimaryDark"
             android:id="@+id/song_view" />
-    </ScrollView>
+    </HorizontalScrollView>
     <ImageView android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:srcCompat="@android:drawable/ic_media_play"

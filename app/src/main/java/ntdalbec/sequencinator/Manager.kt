@@ -1,9 +1,11 @@
 package ntdalbec.sequencinator
 
-import android.util.Log
+import android.os.Bundle
 import java.lang.Exception
+import java.util.*
+import kotlin.collections.ArrayList
 
-class Manager {
+class Manager(private val channelObserver: Observer) {
     private val channels = mutableListOf<Channel>()
     private val audioManager = AudioManager()
 
@@ -13,28 +15,49 @@ class Manager {
             else throw Exception("tempo must be between 40 and 200")
         }
 
-    fun playTone(frequency: Int, duration: Int, wave: WaveForms.Wave = WaveForms.Wave.SIN) {
-        val note = Note(frequency, duration)
-        val tone = note.asByteArray(tempo, wave)
-        Log.i(LOG_TAG, "random tone len: ${tone.size}")
-        audioManager.playByteArray(tone)
+    fun playNote(tone: Int, duration: Int, wave: WaveForms.Wave = WaveForms.Wave.SIN) {
+        val note = Note(tone, duration)
+        val noteData = note.asByteArray(tempo, wave)
+        audioManager.playByteArray(noteData)
     }
 
-    fun addNote(frequency: Int, duration: Int, chanIndex: Int = 0) {
-        val note = Note(frequency, duration)
+    fun addNote(tone: Int, duration: Int, chanIndex: Int = 0) {
+        val note = Note(tone, duration)
         channels[chanIndex].addNote(note)
     }
 
     fun play() {
         //TODO: use convolution instead of just using the first channel
-        val toneData = channels[0].asByteArray(tempo)
-        Log.i(LOG_TAG, "Total data len: ${toneData.size}")
-        audioManager.playByteArray(toneData)
+        val channelData = channels[0].asByteArray(tempo)
+        audioManager.playByteArray(channelData)
     }
+
+    fun channelSize(chanIndex: Int = 0) = channels[chanIndex].size
 
     fun removeNoteAt(noteIndex: Int? = null, chanIndex: Int = 0) = channels[chanIndex].removeNoteAt(noteIndex)
 
-    fun addChannel(wave: WaveForms.Wave = WaveForms.Wave.SIN) = channels.add(Channel(wave))
+    fun addChannel(wave: WaveForms.Wave = WaveForms.Wave.SIN) {
+        val channel = Channel(wave)
+        channel.addObserver(channelObserver)
+        channels.add(channel)
+    }
 
     fun removeChannelAt(index: Int = channels.size - 1) = channels.removeAt(index)
+
+    fun putChannels(outBundle: Bundle) {
+        outBundle.putParcelableArrayList("channels", ArrayList(channels))
+    }
+
+    fun getChannels(bundle: Bundle, o: Observer) {
+        val chans = bundle.getParcelableArrayList<Channel>("channels")
+        chans.forEach {
+            it.addObserver(o)
+            it.pubNotesChange()
+        }
+        channels.addAll(chans)
+    }
+
+    fun onDestroy() {
+        audioManager.onDestroy()
+    }
 }

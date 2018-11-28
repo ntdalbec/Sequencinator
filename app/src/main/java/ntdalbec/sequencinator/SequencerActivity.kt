@@ -2,26 +2,31 @@ package ntdalbec.sequencinator
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_sequencer.*
 
 class SequencerActivity : AppCompatActivity() {
-    private val manager = Manager()
+    private var manager: Manager? = null
     private var currentDuration = Note.QUARTER
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sequencer)
 
-        manager.addChannel()
+        manager = Manager(song_view)
 
-        c_key.setOnClickListener { addAndPlayNote(262) }
-        d_key.setOnClickListener { addAndPlayNote(294) }
-        e_key.setOnClickListener { addAndPlayNote(330) }
-        f_key.setOnClickListener { addAndPlayNote(349) }
-        g_key.setOnClickListener { addAndPlayNote(392) }
-        a_key.setOnClickListener { addAndPlayNote(440) }
-        b_key.setOnClickListener { addAndPlayNote(494) }
+        if (savedInstanceState != null) {
+            manager!!.getChannels(savedInstanceState, song_view)
+        } else {
+            manager!!.addChannel()
+        }
+
+        c_key.setOnClickListener { addAndPlayNote(40) }
+        d_key.setOnClickListener { addAndPlayNote(42) }
+        e_key.setOnClickListener { addAndPlayNote(44) }
+        f_key.setOnClickListener { addAndPlayNote(45) }
+        g_key.setOnClickListener { addAndPlayNote(47) }
+        a_key.setOnClickListener { addAndPlayNote(49) }
+        b_key.setOnClickListener { addAndPlayNote(51) }
 
         whole_note_button.setOnClickListener { currentDuration = Note.WHOLE }
         half_note_button.setOnClickListener { currentDuration = Note.HALF }
@@ -29,16 +34,33 @@ class SequencerActivity : AppCompatActivity() {
         eighth_note_button.setOnClickListener { currentDuration = Note.EIGHTH }
         sixteenth_note_button.setOnClickListener { currentDuration = Note.SIXTEENTH }
 
-        play_button.setOnClickListener { manager.play() }
+        play_button.setOnClickListener { manager!!.play() }
+
+        remove_button.setOnClickListener {
+            if (manager!!.channelSize() != 0) {
+                manager!!.removeNoteAt()
+            }
+        }
+
+        song_view.startTone = 40
+        song_view.endTone = 51
     }
 
-    private fun addAndPlayNote(frequency: Int, chanIndex: Int = 0) {
-        manager.playTone(frequency, currentDuration)
-        manager.addNote(frequency, currentDuration, chanIndex)
-
-        val noteText = TextView(this)
-        noteText.text = "${frequency}hz $currentDuration"
-
-        song_view.addView(noteText)
+    override fun onDestroy() {
+        manager?.onDestroy()
+        super.onDestroy()
     }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        outState?.let {
+            manager?.putChannels(it)
+        }
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun addAndPlayNote(tone: Int, chanIndex: Int = 0) {
+        manager!!.playNote(tone, currentDuration)
+        manager!!.addNote(tone, currentDuration, chanIndex)
+    }
+
 }

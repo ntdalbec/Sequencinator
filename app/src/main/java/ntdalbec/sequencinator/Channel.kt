@@ -1,32 +1,63 @@
 package ntdalbec.sequencinator
 
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
+import java.util.*
 
-class Channel(private val wave: WaveForms.Wave) {
+class Channel(private val wave: WaveForms.Wave) : Observable(), Parcelable {
     private val notes = mutableListOf<Note>()
 
-    fun addNote(note: Note) = notes.add(note)
+    val size: Int
+        get() = notes.size
+
+    fun addNote(note: Note) {
+        notes.add(note)
+        pubNotesChange()
+    }
 
     fun removeNoteAt(index: Int?) {
         notes.removeAt(index ?: notes.size - 1)
+        pubNotesChange()
     }
 
     fun asByteArray(tempo: Int) : ByteArray {
-        Log.i(LOG_TAG, "note list length ${notes.size}")
-
         var arr = byteArrayOf()
+
         for (note in notes) {
-            val tone = note.asByteArray(tempo, wave)
-            arr = byteArrayOf(*arr, *tone)
+            val noteData = note.asByteArray(tempo, wave)
+            arr = byteArrayOf(*arr, *noteData)
         }
 
         return arr
+    }
 
-//        return notes.fold(ByteArray(0)) { acc, note ->
-//            val tone = note.asByteArray(tempo, wave)
-//            Log.i(LOG_TAG, note.toString())
-//            Log.i(LOG_TAG, "note data len: ${tone.size}")
-//            return byteArrayOf(*acc, *tone)
-//        }
+    fun pubNotesChange() {
+        setChanged()
+        notifyObservers(notes.toList())
+        clearChanged()
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(wave.name)
+        parcel.writeTypedList(notes)
+    }
+
+    override fun describeContents(): Int {
+        return 0
+    }
+
+    constructor(parcel: Parcel) : this(WaveForms.Wave.valueOf(parcel.readString()!!)) {
+        parcel.readTypedList(notes, Note.CREATOR)
+    }
+
+    companion object CREATOR : Parcelable.Creator<Channel> {
+        override fun createFromParcel(parcel: Parcel): Channel {
+            return Channel(parcel)
+        }
+
+        override fun newArray(size: Int): Array<Channel?> {
+            return arrayOfNulls(size)
+        }
     }
 }
