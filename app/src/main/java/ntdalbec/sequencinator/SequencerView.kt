@@ -1,10 +1,7 @@
 package ntdalbec.sequencinator
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Point
+import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
@@ -14,16 +11,43 @@ class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs
     private val barColor = Color.BLUE
     private val paint = Paint()
     private val notes = mutableMapOf<Observable, List<Note>>()
+    private var rectLists: List<List<Rect>> = listOf()
     private var neededWidth: Int
     private val screenSize = Point()
+
+    // TODO: Refactor so that when update is called, before requesting layout, the note lists are transformed
+    // into a intermediate representation of lists of Rect objects, and set neededWidth
 
     var startTone = 40
     var endTone = 51
 
-        override fun update(o: Observable?, arg: Any?) {
+    private fun buildRects() {
+        val widthMult = 16
+        val barHeight = height / (endTone + 1 - startTone)
+        var longest = 0
+
+        rectLists = notes.values.map(fun(it: List<Note>): List<Rect> {
+            var xPos = 0
+            val rects = it.map(fun(it: Note): Rect {
+                val end = xPos + it.duration * widthMult
+                val top = (it.tone - startTone) * barHeight
+                val bottom = top + barHeight
+                xPos = end
+                return Rect(xPos, top, end, bottom)
+            })
+            longest = if (xPos > longest) xPos.toInt() else longest
+
+            return rects
+        })
+
+        neededWidth = longest
+    }
+
+    override fun update(o: Observable?, arg: Any?) {
         notes[o!!] = arg as List<Note> // Assumes that either being null is not a valid state
+        buildRects()
         Log.i(LOG_TAG, "observer update")
-        invalidate()
+        requestLayout()
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -31,23 +55,11 @@ class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs
         super.onDraw(canvas)
         if (canvas == null) return
 
-        val widthMult = 16F //TODO: use something screen density aware
-        val barHeight = height / (endTone + 1 - startTone).toFloat()
-        var longest = 0
-
-        notes.values.forEach {
-            var xPos = 0F
-            it.forEach {
-                val end = xPos + it.duration * widthMult
-                val top = (it.tone - startTone) * barHeight
-                val bottom = top + barHeight
-                canvas.drawRect(xPos, top, end, bottom, paint)
-                xPos = end
+        rectLists.forEach {
+            it.forEach{
+                canvas.drawRect(it, paint)
             }
-            longest = if (xPos > longest) xPos.toInt() else longest
         }
-
-        neededWidth = longest
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
