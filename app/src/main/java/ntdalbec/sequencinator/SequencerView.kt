@@ -32,10 +32,11 @@ class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs
                 val end = xPos + it.duration * widthMult
                 val top = (it.tone - startTone) * barHeight
                 val bottom = top + barHeight
+                val rect = Rect(xPos, top, end, bottom)
                 xPos = end
-                return Rect(xPos, top, end, bottom)
+                return rect
             })
-            longest = if (xPos > longest) xPos.toInt() else longest
+            longest = if (xPos > longest) xPos else longest
 
             return rects
         })

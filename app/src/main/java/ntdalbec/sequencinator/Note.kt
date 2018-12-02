@@ -13,7 +13,9 @@ data class Note( val tone: Int, val duration: Int ) : Parcelable {
 
     fun asByteArray(tempo: Int, wave: WaveForms.Wave) : ByteArray {
         val size = (getTimingInms(tempo) / 1000f * SAMPLE_RATE).toInt()
-        return ByteArray(size) { wave(frequency, it) }
+
+        return if (tone == 0) ByteArray(size)
+            else ByteArray(size) { wave(frequency, it) }
     }
 
     constructor(parcel: Parcel) : this(
