@@ -5,8 +5,11 @@ import android.os.Parcelable
 import android.util.Log
 import java.util.*
 
-class Channel(private val wave: WaveForms.Wave) : Observable(), Parcelable {
-    private val notes = mutableListOf<Note>()
+class Channel(
+    private val wave: WaveForms.Wave,
+    private val notes: MutableList<Note> = mutableListOf(),
+    private val id: UUID = UUID.randomUUID())
+    : Observable(), Parcelable {
 
     val size: Int
         get() = notes.size

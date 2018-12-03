@@ -15,9 +15,6 @@ class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs
     private var neededWidth: Int
     private val screenSize = Point()
 
-    // TODO: Refactor so that when update is called, before requesting layout, the note lists are transformed
-    // into a intermediate representation of lists of Rect objects, and set neededWidth
-
     var startTone = 40
     var endTone = 51
 
