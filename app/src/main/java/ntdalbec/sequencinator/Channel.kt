@@ -6,13 +6,15 @@ import android.util.Log
 import java.util.*
 
 class Channel(
-    private val wave: WaveForms.Wave,
-    private val notes: MutableList<Note> = mutableListOf(),
-    private val id: UUID = UUID.randomUUID())
+    val wave: WaveForms.Wave,
+    val id: UUID = UUID.randomUUID(),
+    private val notes: MutableList<Note> = mutableListOf())
     : Observable(), Parcelable {
 
     val size: Int
         get() = notes.size
+
+    fun getNotes(): List<Note> = notes
 
     fun addNote(note: Note) {
         notes.add(note)

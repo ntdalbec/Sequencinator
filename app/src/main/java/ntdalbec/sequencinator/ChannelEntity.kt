@@ -17,7 +17,7 @@ import java.util.*
 )
 data class ChannelEntity(
     @PrimaryKey var uid: UUID,
-    @ColumnInfo(name = "song_id") var songId: Int,
+    @ColumnInfo(name = "song_id") var songId: UUID,
     @ColumnInfo(name = "wave_name") var waveName: String,
     @ColumnInfo(name = "note_data") var noteData: String?
 )

@@ -1,14 +1,17 @@
 package ntdalbec.sequencinator
 
+import android.app.Application
 import android.content.pm.ActivityInfo
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.view.View
 import kotlinx.android.synthetic.main.activity_sequencer.*
+import java.util.*
 
 class SequencerActivity : AppCompatActivity() {
-    private var manager: Manager? = null
+    private lateinit var sequenceManager: SequenceManager
+    private lateinit var db: SequencerStore
     private var currentDuration = Note.QUARTER
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,12 +19,18 @@ class SequencerActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         setContentView(R.layout.activity_sequencer)
 
-        manager = Manager(song_view)
+        val uuidString = intent.getStringExtra(SongAdapter.SONG_ID_EXTRA)
+        val songId = UUID.fromString(uuidString)
+        db = DatabaseManager.getInstance(application)
+
+        sequenceManager = SequenceManager(song_view, songId, application)
 
         if (savedInstanceState != null) {
-            manager!!.getChannels(savedInstanceState, song_view)
+            sequenceManager.loadChannelsFromBundle(savedInstanceState)
         } else {
-            manager!!.addChannel()
+            if (!sequenceManager.loadChannelsFromDb()) {
+                sequenceManager.addChannel()
+            }
         }
 
         c_key.setOnClickListener { addAndPlayNote(40) }
@@ -43,17 +52,17 @@ class SequencerActivity : AppCompatActivity() {
         eighth_note_button.setOnClickListener { changeDuration(Note.EIGHTH, it) }
         sixteenth_note_button.setOnClickListener { changeDuration(Note.SIXTEENTH, it) }
 
-        whole_rest_button.setOnClickListener { manager!!.addNote(0, Note.WHOLE) }
-        half_rest_button.setOnClickListener { manager!!.addNote(0, Note.HALF) }
-        quarter_rest_button.setOnClickListener { manager!!.addNote(0, Note.QUARTER) }
-        eighth_rest_button.setOnClickListener { manager!!.addNote(0, Note.EIGHTH) }
-        sixteenth_rest_button.setOnClickListener { manager!!.addNote(0, Note.SIXTEENTH) }
+        whole_rest_button.setOnClickListener { sequenceManager.addNote(0, Note.WHOLE) }
+        half_rest_button.setOnClickListener { sequenceManager.addNote(0, Note.HALF) }
+        quarter_rest_button.setOnClickListener { sequenceManager.addNote(0, Note.QUARTER) }
+        eighth_rest_button.setOnClickListener { sequenceManager.addNote(0, Note.EIGHTH) }
+        sixteenth_rest_button.setOnClickListener { sequenceManager.addNote(0, Note.SIXTEENTH) }
 
-        play_button.setOnClickListener { manager!!.play() }
+        play_button.setOnClickListener { sequenceManager.play() }
 
         remove_button.setOnClickListener {
-            if (manager!!.channelSize() != 0) {
-                manager!!.removeNoteAt()
+            if (sequenceManager.channelSize() != 0) {
+                sequenceManager.removeNoteAt()
             }
         }
 
@@ -64,20 +73,20 @@ class SequencerActivity : AppCompatActivity() {
 
 
     override fun onDestroy() {
-        manager?.onDestroy()
+        sequenceManager.onDestroy()
         super.onDestroy()
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
         outState?.let {
-            manager?.putChannels(it)
+            sequenceManager.putChannelsToBundle(it)
         }
         super.onSaveInstanceState(outState)
     }
 
     private fun addAndPlayNote(tone: Int, chanIndex: Int = 0) {
-        manager!!.playNote(tone, currentDuration)
-        manager!!.addNote(tone, currentDuration, chanIndex)
+        sequenceManager.playNote(tone, currentDuration)
+        sequenceManager.addNote(tone, currentDuration, chanIndex)
     }
 
     private fun changeDuration(duration: Int, view: View) {

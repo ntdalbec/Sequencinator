@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import java.util.*
 
-class DatabaseManager private constructor(appContext: Application) {
+class DatabaseManager private constructor(appContext: Application) : SequencerStore {
     companion object {
         private var INSTANCE: DatabaseManager? = null
 
@@ -18,21 +18,29 @@ class DatabaseManager private constructor(appContext: Application) {
 
     private val db = Room.databaseBuilder(
         appContext,
-        SongDatabase::class.java,
+        SequenceDatabase::class.java,
         "song_db"
     ).build()
 
-    val songs: Array<Song>
+    override val songs: Array<Song>
         get() = db.songDao().loadAllSongs()
 
-    fun addSong(name: String): Song {
+    override fun addSong(name: String): Song {
         val uuid = UUID.randomUUID()
         val song = Song(uuid, name)
         db.songDao().insertSongs(song)
         return song
     }
 
-    fun getChannelsBySong(id: UUID): List<Channel> {
+    override fun deleteSong(song: Song) {
+        db.songDao().deleteSongs(song)
+    }
+
+    override fun updateSong(song: Song) {
+        db.songDao().updateSongs(song)
+    }
+
+    override fun getChannelsBySong(id: UUID): List<Channel> {
         val chanEntities = db.channelDao().loadChannelsBySong(id)
         return chanEntities.map(fun(it: ChannelEntity): Channel {
             val notes = mutableListOf<Note>()
@@ -45,7 +53,34 @@ class DatabaseManager private constructor(appContext: Application) {
                 }
             }
             val wave = WaveForms.Wave.valueOf(it.waveName)
-            return Channel(wave, notes, it.uid)
+            return Channel(wave, it.uid, notes)
         })
+    }
+
+    override fun addChannel(channel: Channel, songId: UUID) {
+        val entity = channelToEntity(channel, songId)
+        db.channelDao().insertChannels(entity)
+    }
+
+    override fun updateChannel(channel: Channel, songId: UUID) {
+        val entity = channelToEntity(channel, songId)
+        db.channelDao().updateChannels(entity)
+    }
+
+    override fun deleteChannel(channel: Channel, songId: UUID) {
+        val entity = channelToEntity(channel, songId)
+        db.channelDao().deleteChannels(entity)
+    }
+
+    private fun channelToEntity(channel: Channel, songId: UUID): ChannelEntity {
+        val waveName = channel.wave.name
+        val toneData = StringBuilder()
+        for (note in channel.getNotes()) {
+            val tone = note.tone.toChar()
+            val dur = note.duration.toChar()
+            toneData.append(tone)
+            toneData.append(dur)
+        }
+        return ChannelEntity(channel.id, songId, waveName, toneData.toString())
     }
 }
