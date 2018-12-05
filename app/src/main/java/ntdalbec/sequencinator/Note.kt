@@ -28,9 +28,7 @@ data class Note( val tone: Int, val duration: Int ) : Parcelable {
         parcel.writeInt(duration)
     }
 
-    override fun describeContents(): Int {
-        return 0
-    }
+    override fun describeContents() = 0
 
     companion object CREATOR : Parcelable.Creator<Note> {
         override fun createFromParcel(parcel: Parcel): Note {

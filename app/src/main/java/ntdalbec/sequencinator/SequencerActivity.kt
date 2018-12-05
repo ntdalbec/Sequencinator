@@ -2,16 +2,18 @@ package ntdalbec.sequencinator
 
 import android.app.Application
 import android.content.pm.ActivityInfo
-import android.support.v7.app.AppCompatActivity
+import android.os.AsyncTask
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
+import androidx.core.content.ContextCompat
 import android.view.View
+import android.widget.ProgressBar
 import kotlinx.android.synthetic.main.activity_sequencer.*
+import java.lang.ref.WeakReference
 import java.util.*
 
 class SequencerActivity : AppCompatActivity() {
     private lateinit var sequenceManager: SequenceManager
-    private lateinit var db: SequencerStore
     private var currentDuration = Note.QUARTER
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,16 +23,14 @@ class SequencerActivity : AppCompatActivity() {
 
         val uuidString = intent.getStringExtra(SongAdapter.SONG_ID_EXTRA)
         val songId = UUID.fromString(uuidString)
-        db = DatabaseManager.getInstance(application)
 
         sequenceManager = SequenceManager(song_view, songId, application)
 
         if (savedInstanceState != null) {
             sequenceManager.loadChannelsFromBundle(savedInstanceState)
+            sequenceManager.attachObserver()
         } else {
-            if (!sequenceManager.loadChannelsFromDb()) {
-                sequenceManager.addChannel()
-            }
+            LoadChannelsTask(sequenceManager, progressBar).execute()
         }
 
         c_key.setOnClickListener { addAndPlayNote(40) }
@@ -70,17 +70,13 @@ class SequencerActivity : AppCompatActivity() {
         song_view.endTone = 51
     }
 
-
-
     override fun onDestroy() {
         sequenceManager.onDestroy()
         super.onDestroy()
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
-        outState?.let {
-            sequenceManager.putChannelsToBundle(it)
-        }
+    override fun onSaveInstanceState(outState: Bundle) {
+        sequenceManager.putChannelsToBundle(outState)
         super.onSaveInstanceState(outState)
     }
 
@@ -103,4 +99,22 @@ class SequencerActivity : AppCompatActivity() {
         view.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent))
     }
 
+    private class LoadChannelsTask(val sm: SequenceManager, progress: ProgressBar) : AsyncTask<Unit, Unit, Unit>() {
+        val progRef = WeakReference(progress)
+
+        override fun onPreExecute() {
+            progRef.get()?.visibility = View.VISIBLE
+        }
+
+        override fun doInBackground(vararg params: Unit?) {
+            if (!sm.loadChannelsFromDb()) {
+                sm.addChannel()
+            }
+        }
+
+        override fun onPostExecute(result: Unit?) {
+            progRef.get()?.visibility = View.INVISIBLE
+            sm.attachObserver()
+        }
+    }
 }

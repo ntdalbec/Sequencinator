@@ -18,8 +18,8 @@ interface ChannelDao {
     fun loadAllChannels(): Array<ChannelEntity>
 
     @Query("SELECT * FROM channel WHERE song_id = :songId")
-    fun loadChannelsBySong(songId: UUID): Array<ChannelEntity>
+    fun loadChannelsBySong(songId: String): Array<ChannelEntity>
 
     @Query("SELECT * FROM channel WHERE uid = :id LIMIT 1")
-    fun loadChannelById(id: UUID): ChannelEntity
+    fun loadChannelById(id: String): ChannelEntity
 }

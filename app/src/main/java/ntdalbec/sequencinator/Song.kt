@@ -7,6 +7,6 @@ import java.util.*
 
 @Entity (tableName = "song")
 data class Song(
-    @PrimaryKey var uid: UUID,
+    @PrimaryKey var uid: String,
     @ColumnInfo var name: String
 )

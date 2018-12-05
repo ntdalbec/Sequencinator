@@ -38,6 +38,7 @@ class Channel(
     }
 
     fun pubNotesChange() {
+        Log.i(LOG_TAG, "pub observer: ${notes.size}")
         setChanged()
         notifyObservers(notes.toList())
         clearChanged()
@@ -48,9 +49,7 @@ class Channel(
         parcel.writeTypedList(notes)
     }
 
-    override fun describeContents(): Int {
-        return 0
-    }
+    override fun describeContents() = 0
 
     constructor(parcel: Parcel) : this(WaveForms.Wave.valueOf(parcel.readString()!!)) {
         parcel.readTypedList(notes, Note.CREATOR)

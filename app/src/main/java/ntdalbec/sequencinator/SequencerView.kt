@@ -27,8 +27,8 @@ class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs
             var xPos = 0
             val rects = it.map(fun(it: Note): Rect {
                 val end = xPos + it.duration * widthMult
-                val top = (it.tone - startTone) * barHeight
-                val bottom = top + barHeight
+                val top = height - (it.tone - startTone) * barHeight
+                val bottom = top - barHeight
                 val rect = Rect(xPos, top, end, bottom)
                 xPos = end
                 return rect
@@ -49,19 +49,18 @@ class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs
     }
 
     override fun onDraw(canvas: Canvas?) {
-        Log.i(LOG_TAG, "onDraw")
-        super.onDraw(canvas)
+        Log.i(LOG_TAG, "onDraw: ${rectLists.size}")
         if (canvas == null) return
-
         rectLists.forEach {
+            Log.i(LOG_TAG, "rect draw: ${it.size}")
             it.forEach{
                 canvas.drawRect(it, paint)
             }
         }
+        super.onDraw(canvas)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        //TODO: cause to resize properly
         Log.i(LOG_TAG, "onMeasure")
         val heightSpec = MeasureSpec.getSize(heightMeasureSpec)
 

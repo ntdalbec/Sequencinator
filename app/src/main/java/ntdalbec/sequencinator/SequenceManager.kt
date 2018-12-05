@@ -30,18 +30,20 @@ class SequenceManager(
 
     fun addNote(tone: Int, duration: Int, chanIndex: Int = 0) {
         val note = Note(tone, duration)
-        channels[chanIndex].addNote(note)
+        channels.getOrNull(chanIndex)?.addNote(note)
     }
 
     fun play() {
         //TODO: use convolution instead of just using the first channel
-        val channelData = channels[0].asByteArray(tempo)
-        audioManager.playByteArray(channelData)
+        channels.getOrNull(0)?.let {
+            val channelData = it.asByteArray(tempo)
+            audioManager.playByteArray(channelData)
+        }
     }
 
-    fun channelSize(chanIndex: Int = 0) = channels[chanIndex].size
+    fun channelSize(chanIndex: Int = 0) = channels.getOrNull(chanIndex)?.size ?: 0
 
-    fun removeNoteAt(noteIndex: Int? = null, chanIndex: Int = 0) = channels[chanIndex].removeNoteAt(noteIndex)
+    fun removeNoteAt(noteIndex: Int? = null, chanIndex: Int = 0) = channels.getOrNull(chanIndex)?.removeNoteAt(noteIndex)
 
     fun addChannel(wave: WaveForms.Wave = WaveForms.Wave.SIN) {
         val channel = Channel(wave)
@@ -55,31 +57,34 @@ class SequenceManager(
         db.deleteChannel(channel, songId)
     }
 
+    fun pubChannelChanges() = channels.forEach { it.pubNotesChange() }
+
     fun putChannelsToBundle(outBundle: Bundle) {
         outBundle.putParcelableArrayList("channels", ArrayList(channels))
     }
 
     fun loadChannelsFromBundle(bundle: Bundle) {
         val chans = bundle.getParcelableArrayList<Channel>("channels") ?: return
-        chans.forEach {
-            it.addObserver(channelObserver)
-            it.pubNotesChange()
-        }
         channels.addAll(chans)
     }
 
     fun loadChannelsFromDb(): Boolean {
         val chans = db.getChannelsBySong(songId)
-        chans.forEach {
+        return channels.addAll(chans)
+    }
+
+    fun attachObserver() {
+        channels.forEach {
             it.addObserver(channelObserver)
             it.pubNotesChange()
         }
-        return channels.addAll(chans)
     }
 
     fun onDestroy() {
         audioManager.onDestroy()
-        channels.forEach { db.updateChannel(it, songId) }
+        Thread {
+            channels.forEach { db.updateChannel(it, songId) }
+        }.start()
     }
 
     init {

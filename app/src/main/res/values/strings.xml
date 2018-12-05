@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Sequencinator</string>
+    <string name="delete_button_description">Delete Forever</string>
 </resources>

@@ -18,5 +18,5 @@ interface SongDao {
     fun loadAllSongs(): Array<Song>
 
     @Query("SELECT * FROM song WHERE uid = :id LIMIT 1")
-    fun loadSongById(id: UUID): Song
+    fun loadSongById(id: String): Song
 }

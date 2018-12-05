@@ -27,7 +27,7 @@ class DatabaseManager private constructor(appContext: Application) : SequencerSt
 
     override fun addSong(name: String): Song {
         val uuid = UUID.randomUUID()
-        val song = Song(uuid, name)
+        val song = Song(uuid.toString(), name)
         db.songDao().insertSongs(song)
         return song
     }
@@ -41,7 +41,7 @@ class DatabaseManager private constructor(appContext: Application) : SequencerSt
     }
 
     override fun getChannelsBySong(id: UUID): List<Channel> {
-        val chanEntities = db.channelDao().loadChannelsBySong(id)
+        val chanEntities = db.channelDao().loadChannelsBySong(id.toString())
         return chanEntities.map(fun(it: ChannelEntity): Channel {
             val notes = mutableListOf<Note>()
             it.noteData?.let {
@@ -53,7 +53,8 @@ class DatabaseManager private constructor(appContext: Application) : SequencerSt
                 }
             }
             val wave = WaveForms.Wave.valueOf(it.waveName)
-            return Channel(wave, it.uid, notes)
+            val id = UUID.fromString(it.uid)
+            return Channel(wave, id, notes)
         })
     }
 
@@ -81,6 +82,6 @@ class DatabaseManager private constructor(appContext: Application) : SequencerSt
             toneData.append(tone)
             toneData.append(dur)
         }
-        return ChannelEntity(channel.id, songId, waveName, toneData.toString())
+        return ChannelEntity(channel.id.toString(), songId.toString(), waveName, toneData.toString())
     }
 }
