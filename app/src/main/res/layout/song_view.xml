@@ -5,19 +5,47 @@
     android:layout_height="112dp"
     android:gravity="center"
     android:orientation="horizontal"
-    android:background="@android:drawable/bottom_bar">
-    <TextView android:layout_width="wrap_content"
+    android:background="@drawable/song_view_background">
+    <ViewSwitcher android:layout_width="wrap_content"
+        android:layout_height="match_parent"
         android:paddingStart="16dp"
-        android:layout_height="match_parent"
         android:layout_weight="10"
-        android:id="@+id/nameText"
-        android:gravity="center_vertical"
-        android:textSize="20sp"/>
-    <ImageButton android:layout_width="wrap_content"
-        android:contentDescription="@string/delete_button_description"
+        android:id="@+id/nameSwitcher">
+        <TextView android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/nameText"
+            android:gravity="center_vertical"
+            android:textSize="20sp" />
+        <EditText android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/nameEdit"
+            android:gravity="center_vertical"
+            android:inputType="text"
+            android:maxLines="1" />
+    </ViewSwitcher>
+
+    <LinearLayout android:orientation="vertical"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        app:srcCompat="@drawable/baseline_delete_forever_black_36dp"
-        android:id="@+id/deleteButton"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:gravity="center"
+        android:id="@+id/optionsLayout">
+        <ImageButton
+            android:contentDescription="@string/delete_button_description"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="fitCenter"
+            android:src="@drawable/baseline_delete_forever_black_36dp"
+            android:id="@+id/deleteButton"
+            android:background="?attr/selectableItemBackgroundBorderless" />
+        <ImageButton android:src="@drawable/baseline_edit_black_36dp"
+            android:contentDescription="@string/rename"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="fitCenter"
+            android:id="@+id/renameButton"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
+    </LinearLayout>
 </LinearLayout>
