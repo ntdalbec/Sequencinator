@@ -1,7 +1,6 @@
 package ntdalbec.sequencinator
 
 import android.app.Application
-import android.content.Context
 import android.os.Bundle
 import java.lang.Exception
 import java.util.*
@@ -10,7 +9,7 @@ import kotlin.collections.ArrayList
 class SequenceManager(
     private val channelObserver: Observer,
     private val songId: UUID,
-    appContext: Application) {
+    appContext: Application ) {
 
     private val channels = mutableListOf<Channel>()
     private val audioManager = AudioManager()

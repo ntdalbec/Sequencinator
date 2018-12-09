@@ -1,12 +1,13 @@
 package ntdalbec.sequencinator
 
-import android.app.Application
 import android.content.pm.ActivityInfo
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.core.content.ContextCompat
 import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ProgressBar
 import kotlinx.android.synthetic.main.activity_sequencer.*
 import java.lang.ref.WeakReference
@@ -15,6 +16,9 @@ import java.util.*
 class SequencerActivity : AppCompatActivity() {
     private lateinit var sequenceManager: SequenceManager
     private var currentDuration = Note.QUARTER
+    private val STARTING_KEY = 28
+    private val ENDING_KEY = 52
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,18 +37,11 @@ class SequencerActivity : AppCompatActivity() {
             LoadChannelsTask(sequenceManager, progressBar).execute()
         }
 
-        c_key.setOnClickListener { addAndPlayNote(40) }
-        c_sharp_key.setOnClickListener { addAndPlayNote(41) }
-        d_key.setOnClickListener { addAndPlayNote(42) }
-        d_sharp_key.setOnClickListener { addAndPlayNote(43) }
-        e_key.setOnClickListener { addAndPlayNote(44) }
-        f_key.setOnClickListener { addAndPlayNote(45) }
-        f_sharp_key.setOnClickListener { addAndPlayNote(46) }
-        g_key.setOnClickListener { addAndPlayNote(47) }
-        g_sharp_key.setOnClickListener { addAndPlayNote(48) }
-        a_key.setOnClickListener { addAndPlayNote(49) }
-        a_sharp_key.setOnClickListener { addAndPlayNote(50) }
-        b_key.setOnClickListener { addAndPlayNote(51) }
+        attachKeyButtons(STARTING_KEY..ENDING_KEY, key_section)
+
+        val keyWidth = pxToDp(80.toFloat())
+        val startingX = (SequencerView.DEFAULT_START - STARTING_KEY) * keyWidth
+        key_scroll.scrollTo(startingX.toInt(), 0)
 
         whole_note_button.setOnClickListener { changeDuration(Note.WHOLE, it) }
         half_note_button.setOnClickListener { changeDuration(Note.HALF, it) }
@@ -65,9 +62,6 @@ class SequencerActivity : AppCompatActivity() {
                 sequenceManager.removeNoteAt()
             }
         }
-
-        song_view.startTone = 40
-        song_view.endTone = 51
     }
 
     override fun onDestroy() {
@@ -80,10 +74,48 @@ class SequencerActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
     }
 
-    private fun addAndPlayNote(tone: Int, chanIndex: Int = 0) {
+    private fun attachKeyButtons(toneRange: IntRange, parent: ViewGroup) {
+        for (tone in toneRange) {
+            val button = layoutInflater.inflate(R.layout.key_button, parent,false) as Button
+            button.text = getKeyNameFromTone(tone)
+            button.setOnClickListener { oneKeyPress(tone) }
+            parent.addView(button)
+        }
+    }
+
+    private fun getKeyNameFromTone(tone: Int) : String {
+        val key = when (tone % 12) {
+            1    -> "A"
+            2    -> "A#"
+            3    -> "B"
+            4    -> "C"
+            5    -> "C#"
+            6    -> "D"
+            7    -> "D#"
+            8    -> "E"
+            9    -> "F"
+            10   -> "F#"
+            11   -> "G"
+            else -> "G#"
+        }
+
+        val octave = (tone + 9) / 12
+
+        return "$key$octave"
+    }
+
+    private fun oneKeyPress(tone: Int, chanIndex: Int = 0) {
+        if (tone < song_view.startTone) {
+            song_view.startTone = tone
+        } else if (tone > song_view.endTone) {
+            song_view.endTone = tone
+        }
+
         sequenceManager.playNote(tone, currentDuration)
         sequenceManager.addNote(tone, currentDuration, chanIndex)
     }
+
+    private fun pxToDp(px: Float) = px / resources.displayMetrics.density
 
     private fun changeDuration(duration: Int, view: View) {
         currentDuration = duration

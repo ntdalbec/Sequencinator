@@ -15,8 +15,13 @@ class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs
     private var neededWidth: Int
     private val screenSize = Point()
 
-    var startTone = 40
-    var endTone = 51
+    var startTone = DEFAULT_START
+    var endTone = DEFAULT_END
+
+    companion object {
+        const val DEFAULT_START = 40
+        const val DEFAULT_END = 51
+    }
 
     private fun buildRects() {
         val widthMult = 16
