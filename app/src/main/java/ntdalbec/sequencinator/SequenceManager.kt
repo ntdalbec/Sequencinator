@@ -80,11 +80,14 @@ class SequenceManager(
         }
     }
 
-    fun onDestroy() {
-        audioManager.onDestroy()
+    fun onStop() {
         Thread {
             channels.forEach { db.updateChannel(it, songId) }
         }.start()
+    }
+
+    fun onDestroy() {
+        audioManager.onDestroy()
     }
 
     init {

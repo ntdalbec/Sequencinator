@@ -15,7 +15,22 @@ data class Note( val tone: Int, val duration: Int ) : Parcelable {
         val size = (getTimingInms(tempo) / 1000f * SAMPLE_RATE).toInt()
 
         return if (tone == 0) ByteArray(size)
-            else ByteArray(size) { wave(frequency, it) }
+        else {
+            val gapped = ByteArray(size) { if (it < size - gapSize) wave(frequency, it) else 0 }
+            trim(gapped)
+        }
+    }
+
+    fun trim(arr: ByteArray) : ByteArray {
+        var localMinIndex = -1
+        for (i in arr.size - 2 downTo 0) {
+            if (arr[i - 1] > arr[i] && arr[i] < arr[i + 1]) {
+                localMinIndex = i
+                break
+            }
+        }
+
+        return arr.dropLast(arr.size - localMinIndex).toByteArray()
     }
 
     constructor(parcel: Parcel) : this(
@@ -38,6 +53,8 @@ data class Note( val tone: Int, val duration: Int ) : Parcelable {
         override fun newArray(size: Int): Array<Note?> {
             return arrayOfNulls(size)
         }
+
+        val gapSize = SAMPLE_RATE / 1000 * 30
 
         const val WHOLE = 16
         const val HALF = 8

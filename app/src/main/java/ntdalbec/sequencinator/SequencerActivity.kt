@@ -16,7 +16,7 @@ import java.util.*
 class SequencerActivity : AppCompatActivity() {
     private lateinit var sequenceManager: SequenceManager
     private var currentDuration = Note.QUARTER
-    private val STARTING_KEY = 40
+    private val STARTING_KEY = 35
     private val ENDING_KEY = 64
 
 
@@ -38,12 +38,6 @@ class SequencerActivity : AppCompatActivity() {
         }
 
         attachKeyButtons(STARTING_KEY..ENDING_KEY, key_section)
-
-        val keyWidth = pxToDp(80.toFloat())
-        val startingX = (SequencerView.DEFAULT_START - STARTING_KEY) * keyWidth
-        key_scroll.post {
-            key_scroll.scrollTo(startingX.toInt(), 0)
-        }
 
         whole_note_button.setOnClickListener { changeDuration(Note.WHOLE, it) }
         half_note_button.setOnClickListener { changeDuration(Note.HALF, it) }
@@ -67,6 +61,11 @@ class SequencerActivity : AppCompatActivity() {
 
         song_view.startTone = STARTING_KEY
         song_view.endTone = ENDING_KEY
+    }
+
+    override fun onStop() {
+        sequenceManager.onStop()
+        super.onStop()
     }
 
     override fun onDestroy() {
