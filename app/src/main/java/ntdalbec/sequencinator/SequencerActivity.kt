@@ -51,7 +51,7 @@ class SequencerActivity : AppCompatActivity() {
         eighth_rest_button.setOnClickListener { sequenceManager.addNote(0, Note.EIGHTH) }
         sixteenth_rest_button.setOnClickListener { sequenceManager.addNote(0, Note.SIXTEENTH) }
 
-        play_button.setOnClickListener { sequenceManager.play() }
+        play_button.setOnClickListener { PlayTask(sequenceManager, progressBar).execute() }
 
         remove_button.setOnClickListener {
             if (sequenceManager.channelSize() != 0) {
@@ -151,6 +151,22 @@ class SequencerActivity : AppCompatActivity() {
         override fun onPostExecute(result: Unit?) {
             progRef.get()?.visibility = View.INVISIBLE
             sm.attachObserver()
+        }
+    }
+
+    private class PlayTask(val sm: SequenceManager, progress: ProgressBar) : AsyncTask<Unit, Unit, Unit>() {
+        val progRef = WeakReference(progress)
+
+        override fun onPreExecute() {
+            progRef.get()?.visibility = View.VISIBLE
+        }
+
+        override fun doInBackground(vararg params: Unit?) {
+            sm.play()
+        }
+
+        override fun onPostExecute(result: Unit?) {
+            progRef.get()?.visibility = View.INVISIBLE
         }
     }
 }
