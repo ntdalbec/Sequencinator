@@ -74,6 +74,7 @@ class SequenceManager(
 
     fun attachObserver() {
         channels.forEach {
+            it.deleteObservers()
             it.addObserver(channelObserver)
             it.pubNotesChange()
         }

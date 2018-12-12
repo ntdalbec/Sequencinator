@@ -5,10 +5,10 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import androidx.core.content.ContextCompat
 import java.util.*
 
 class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs), Observer {
-    private val barColor = Color.BLUE
     private val paint = Paint()
     private val notes = mutableMapOf<Observable, List<Note>>()
     private var rectLists: List<List<Rect>> = listOf()
@@ -48,13 +48,20 @@ class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs
 
     override fun update(o: Observable?, arg: Any?) {
         notes[o!!] = arg as List<Note> // Assumes that either being null is not a valid state
-        buildRects()
         Log.i(LOG_TAG, "observer update")
+        if (height > 0) { // WARNING: Cheap hack
+            buildRects()
+        }
+
         requestLayout()
     }
 
     override fun onDraw(canvas: Canvas?) {
         Log.i(LOG_TAG, "onDraw: ${rectLists.size}")
+        if (rectLists.isEmpty()) {
+            buildRects()
+        }
+
         if (canvas == null) return
         rectLists.forEach {
             Log.i(LOG_TAG, "rect draw: ${it.size}")
@@ -78,7 +85,7 @@ class SequencerView(context: Context, attrs: AttributeSet) : View(context, attrs
     init {
         isFocusableInTouchMode = true
 
-        paint.color = barColor
+        paint.color = ContextCompat.getColor(context, R.color.colorAccent)
         paint.style = Paint.Style.FILL_AND_STROKE
         paint.isAntiAlias = true
 

@@ -1,9 +1,9 @@
 package ntdalbec.sequencinator
 
-import android.content.pm.ActivityInfo
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.core.content.ContextCompat
 import android.view.View
 import android.view.ViewGroup
@@ -22,7 +22,7 @@ class SequencerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        Log.i(LOG_TAG, "onCreate")
         setContentView(R.layout.activity_sequencer)
 
         val uuidString = intent.getStringExtra(SongAdapter.SONG_ID_EXTRA)
@@ -131,7 +131,7 @@ class SequencerActivity : AppCompatActivity() {
             quarter_note_button,
             eighth_note_button,
             sixteenth_note_button
-        ).forEach { it.background = ContextCompat.getDrawable(this, android.R.attr.selectableItemBackgroundBorderless) }
+        ).forEach { it.setBackgroundColor(0x00_00_00_00) }
 
         view.setBackgroundColor(ContextCompat.getColor(this, R.color.colorAccent))
     }
